@@ -405,7 +405,9 @@ fun ChatScreenContent(
     ) { pad ->
         Box(modifier = Modifier
             .padding(pad)
-            .fillMaxSize()) {
+            .fillMaxSize()
+            .imePadding()
+        ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier
