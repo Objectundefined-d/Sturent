@@ -97,7 +97,8 @@ fun EditQuestionnaireScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(Dimens.dp16),
+                        .padding(Dimens.dp16)
+                        .navigationBarsPadding(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     OutlinedButton(
