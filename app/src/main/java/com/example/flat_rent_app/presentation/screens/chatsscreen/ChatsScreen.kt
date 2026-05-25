@@ -12,6 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.flat_rent_app.R
 import com.example.flat_rent_app.domain.model.Chat
 import com.example.flat_rent_app.domain.model.ChatUiItem
@@ -30,10 +34,17 @@ fun ChatsScreen(
     onGoFavorites: () -> Unit,
     viewmodel: ChatsViewModel = hiltViewModel()
 ) {
-    val items by viewmodel.items.collectAsState()
-    val searchQuery by viewmodel.searchQuery.collectAsState()
+    val items by viewmodel.items.collectAsStateWithLifecycle()
+    val searchQuery by viewmodel.searchQuery.collectAsStateWithLifecycle()
     var searchVisible by remember { mutableStateOf(false) }
     var chatToDelete by remember { mutableStateOf<ChatUiItem?>(null) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewmodel.onSearchQuery("")
+        }
+    }
 
     ChatsScreenContent(
         searchVisible = searchVisible,

@@ -1,7 +1,6 @@
 package com.example.flat_rent_app.presentation.screens.profilescreen
 
-import com.example.flat_rent_app.presentation.theme.Dimens
-
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -18,20 +17,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
+import com.example.flat_rent_app.R
 import com.example.flat_rent_app.presentation.components.AppBottomBar
+import com.example.flat_rent_app.presentation.theme.Dimens
+import com.example.flat_rent_app.presentation.theme.FlatrentappTheme
 import com.example.flat_rent_app.presentation.viewmodel.profileviewmodel.ProfileViewModel
 import com.example.flat_rent_app.util.BottomTabs
-import android.content.res.Configuration
-import androidx.compose.ui.res.stringResource
-import com.example.flat_rent_app.R
-import com.example.flat_rent_app.presentation.theme.FlatrentappTheme
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,8 +77,23 @@ fun ProfileScreenContent(
                 .padding(horizontal = Dimens.dp24, vertical = Dimens.dp24),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
+            val scope = rememberCoroutineScope()
             val pagerState = rememberPagerState(pageCount = { maxOf(1, photoUrls.size) })
+
+            val lifecycleOwner = LocalLifecycleOwner.current
+            DisposableEffect(lifecycleOwner, pagerState) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        scope.launch {
+                            pagerState.scrollToPage(0)
+                        }
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose {
+                    lifecycleOwner.lifecycle.removeObserver(observer)
+                }
+            }
 
             Box(
                 modifier = Modifier
@@ -197,6 +213,15 @@ fun ProfileScreen(
     val userProfile by viewModel.userProfile.collectAsState()
 
     val slots = userProfile?.photoSlots ?: listOf(null, null, null)
+    val mainPhotoIndex = userProfile?.mainPhotoIndex ?: 0
+
+    val photoUrls = remember(slots, mainPhotoIndex) {
+        val mainUrl = slots.getOrNull(mainPhotoIndex)?.fullUrl
+        val otherUrls = slots.mapIndexedNotNull { index, slot ->
+            if (index != mainPhotoIndex && slot?.fullUrl != null) slot.fullUrl else null
+        }
+        listOfNotNull(mainUrl) + otherUrls
+    }
 
     ProfileScreenContent(
         displayName = when {
@@ -206,7 +231,7 @@ fun ProfileScreen(
         },
         age = userProfile?.age,
         email = user?.email,
-        photoUrls = slots.mapNotNull { it?.fullUrl },
+        photoUrls = photoUrls,
         onEditQuestionnaire = onEditQuestionnaire,
         onSignOut = viewModel::signOut,
         onGoHome = onGoHome,

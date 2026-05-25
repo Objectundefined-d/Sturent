@@ -35,8 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.flat_rent_app.R
@@ -97,7 +95,8 @@ fun EditQuestionnaireScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(Dimens.dp16),
+                        .padding(Dimens.dp16)
+                        .navigationBarsPadding(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     OutlinedButton(
